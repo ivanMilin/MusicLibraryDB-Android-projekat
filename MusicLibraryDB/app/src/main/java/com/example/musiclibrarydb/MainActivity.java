@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
                     if(checkuserpass == true)
                     {
-                        Intent intent = new Intent(getApplicationContext(),HomeActivity.class);
+                        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                         startActivity(intent);
                     }
                     else

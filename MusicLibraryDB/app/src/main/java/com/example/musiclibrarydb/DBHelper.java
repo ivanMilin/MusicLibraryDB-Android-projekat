@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -19,11 +20,13 @@ public class DBHelper extends SQLiteOpenHelper
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table users(username TEXT primary key, password TEXT)");
+        db.execSQL("CREATE TABLE songs(id INTEGER PRIMARY KEY AUTOINCREMENT, songName TEXT, authorName TEXT, genreName TEXT)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("drop table if exists users");
+        //db.execSQL("drop table if exists songs");
         onCreate(db);
     }
 
@@ -59,7 +62,7 @@ public class DBHelper extends SQLiteOpenHelper
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery("select * from users where username=? and password=?", new String[]{username,password});
 
-        if(cursor.getCount()>0)
+        if(cursor.getCount() > 0)
         {
             return true;
         }
@@ -68,7 +71,51 @@ public class DBHelper extends SQLiteOpenHelper
             return false;
         }
     }
+
+    public Boolean insertSong(String songName, String artist, String genre)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put("songName", songName);
+        values.put("authorName", artist);
+        values.put("genreName", genre);
+
+        try
+        {
+            long result = db.insert("songs", null, values);
+            if (result == -1)
+            {
+                Log.e("DBHelper", "Failed to insert song");
+                return false;
+            }
+            else
+            {
+                Log.d("DBHelper", "Song inserted successfully");
+                return true;
+            }
+        }
+        catch (Exception e)
+        {
+            Log.e("DBHelper", "Error inserting song", e);
+            return false;
+        }
+    }
+
+    Cursor readAllData()
+    {
+        String query = "SELECT * FROM " + "songs";
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = null;
+        if(db != null)
+        {
+            cursor = db.rawQuery(query, null);
+        }
+        return cursor;
+    }
 }
 
 //https://www.youtube.com/watch?v=yJ02XTKiuAc
+//https://www.youtube.com/playlist?list=PLSrm9z4zp4mGK0g_0_jxYGgg3os9tqRUQ
 // ~ 10:00
