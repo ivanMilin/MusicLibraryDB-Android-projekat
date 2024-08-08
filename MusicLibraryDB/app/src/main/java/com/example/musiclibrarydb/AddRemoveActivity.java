@@ -1,5 +1,6 @@
 package com.example.musiclibrarydb;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -19,6 +20,7 @@ public class AddRemoveActivity extends AppCompatActivity {
     EditText editText_genre;
 
     Button btn_add;
+    Button btn_goBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,10 +33,11 @@ public class AddRemoveActivity extends AppCompatActivity {
             return insets;
         });
 
-        editText_songName = findViewById(R.id.editText_songName);
-        editText_artist   = findViewById(R.id.editText_artist);
-        editText_genre    = findViewById(R.id.editText_genre);
-        btn_add           = findViewById(R.id.btn_add);
+        editText_songName = findViewById(R.id.editText_songName2);
+        editText_artist   = findViewById(R.id.editText_artist2);
+        editText_genre    = findViewById(R.id.editText_genre2);
+        btn_add           = findViewById(R.id.btn_update);
+        btn_goBack        = findViewById(R.id.btn_goBack2);
 
         btn_add.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,6 +53,14 @@ public class AddRemoveActivity extends AppCompatActivity {
                 {
                     Toast.makeText(AddRemoveActivity.this,"Input Failed! "+ editText_songName.getText().toString().trim() +" "+ editText_artist.getText().toString().trim() +" "+ editText_genre.getText().toString().trim(), Toast.LENGTH_LONG).show();
                 }
+            }
+        });
+
+        btn_goBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(AddRemoveActivity.this, HomeActivity.class);
+                startActivity(intent);
             }
         });
     }

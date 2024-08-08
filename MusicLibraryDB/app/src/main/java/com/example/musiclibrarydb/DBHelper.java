@@ -6,15 +6,18 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
 public class DBHelper extends SQLiteOpenHelper
 {
+    private Context context;
     public static final String DBNAME = "MusicLibraryDB";
 
     public DBHelper(@Nullable Context context) {
         super(context, "MusicLibraryDB", null, 1);
+        this.context = context;
     }
 
     @Override
@@ -26,7 +29,7 @@ public class DBHelper extends SQLiteOpenHelper
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("drop table if exists users");
-        //db.execSQL("drop table if exists songs");
+        db.execSQL("drop table if exists songs");
         onCreate(db);
     }
 
@@ -113,6 +116,28 @@ public class DBHelper extends SQLiteOpenHelper
             cursor = db.rawQuery(query, null);
         }
         return cursor;
+    }
+
+    public void updateData(String row_id,String songName, String artistName, String songGenre)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+
+        cv.put("songName", songName);
+        cv.put("authorName", artistName);
+        cv.put("genreName", songGenre);
+
+        long result = db.update("songs", cv, "id=?", new String[]{row_id});
+
+        if(result == -1)
+        {
+            Toast.makeText(context, "Failed updated!", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            Toast.makeText(context, "Successfully updated!", Toast.LENGTH_SHORT).show();
+        }
+
     }
 }
 
