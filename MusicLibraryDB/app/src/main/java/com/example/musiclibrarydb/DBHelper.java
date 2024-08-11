@@ -118,6 +118,19 @@ public class DBHelper extends SQLiteOpenHelper
         return cursor;
     }
 
+    Cursor readAllSongsName()
+    {
+        String query = "SELECT songName FROM " + "songs";
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = null;
+        if(db != null)
+        {
+            cursor = db.rawQuery(query, null);
+        }
+        return cursor;
+    }
+
     public void updateData(String row_id,String songName, String artistName, String songGenre)
     {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -138,6 +151,21 @@ public class DBHelper extends SQLiteOpenHelper
             Toast.makeText(context, "Successfully updated!", Toast.LENGTH_SHORT).show();
         }
 
+    }
+
+    public void deleteOneRow(String row_id)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        long result = db.delete("songs","id=?", new String[]{row_id});
+
+        if(result == -1)
+        {
+            Toast.makeText(context, "Failed removal!", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            Toast.makeText(context, "Successfully deleted!", Toast.LENGTH_SHORT).show();
+        }
     }
 }
 

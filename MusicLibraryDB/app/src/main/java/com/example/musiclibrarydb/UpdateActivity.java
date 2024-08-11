@@ -1,5 +1,6 @@
 package com.example.musiclibrarydb;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -8,6 +9,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -18,7 +20,7 @@ public class UpdateActivity extends AppCompatActivity {
 
     EditText songName2, artist2, genre2;
     Button btn_update;
-    Button btn_goBack2;
+    Button btn_delete;
 
     String songID, songName, artistName, songGenre;
 
@@ -33,11 +35,11 @@ public class UpdateActivity extends AppCompatActivity {
             return insets;
         });
 
-        songName2 = findViewById(R.id.editText_songName2);
-        artist2   = findViewById(R.id.editText_artist2);
-        genre2    = findViewById(R.id.editText_genre2);
-        btn_update         = findViewById(R.id.btn_update);
-        btn_goBack2        = findViewById(R.id.btn_goBack2);
+        songName2  = findViewById(R.id.editText_songName2);
+        artist2    = findViewById(R.id.editText_artist2);
+        genre2     = findViewById(R.id.editText_genre2);
+        btn_update = findViewById(R.id.btn_update);
+        btn_delete = findViewById(R.id.btn_delete);
 
         getAndSetIntentData();
 
@@ -47,13 +49,13 @@ public class UpdateActivity extends AppCompatActivity {
                 DBHelper DB = new DBHelper(UpdateActivity.this);
                 Toast.makeText(UpdateActivity.this, "Kod ispravljen "  + songName2.getText().toString() + " " + artist2.getText().toString() + " " + genre2.getText().toString() + " ", Toast.LENGTH_SHORT).show();
                 DB.updateData(songID, songName2.getText().toString(), artist2.getText().toString(), genre2.getText().toString());
+                finish();
             }
         });
-        btn_goBack2.setOnClickListener(new View.OnClickListener() {
+        btn_delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(UpdateActivity.this, HomeActivity.class);
-                startActivity(intent);
+                confirmDialog();
             }
         });
     }
@@ -79,5 +81,26 @@ public class UpdateActivity extends AppCompatActivity {
             Toast.makeText(this, "Zero data received!", Toast.LENGTH_SHORT).show();
         }
 
+    }
+
+    void confirmDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Delete");
+        builder.setMessage("Are you sure you want to delete ");
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                DBHelper DB = new DBHelper(UpdateActivity.this);
+                DB.deleteOneRow(songID);
+                finish();
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                finish();
+            }
+        });
+        builder.create().show();
     }
 }

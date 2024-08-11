@@ -37,7 +37,7 @@ public class AddRemoveActivity extends AppCompatActivity {
         editText_artist   = findViewById(R.id.editText_artist2);
         editText_genre    = findViewById(R.id.editText_genre2);
         btn_add           = findViewById(R.id.btn_update);
-        btn_goBack        = findViewById(R.id.btn_goBack2);
+        btn_goBack        = findViewById(R.id.btn_delete);
 
         btn_add.setOnClickListener(new View.OnClickListener() {
             @Override

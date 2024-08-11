@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -25,7 +26,9 @@ import java.util.List;
 public class HomeActivity extends AppCompatActivity {
 
     RecyclerView recyclerView;
+    Button button_playlist;
     FloatingActionButton add_remove_button;
+
 
     DBHelper DB;
     ArrayList <String> songID, songName, artistName, songGenre;
@@ -46,6 +49,15 @@ public class HomeActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recycleView);
         add_remove_button = findViewById(R.id.floatingActionButton);
+        button_playlist = findViewById(R.id.button_playlist);
+
+        add_remove_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, AddRemoveActivity.class);
+                startActivity(intent);
+            }
+        });
 
         spinner = findViewById(R.id.searchType);
 
@@ -76,6 +88,15 @@ public class HomeActivity extends AppCompatActivity {
         customAdapter = new CustomAdapter(HomeActivity.this, this,songID,songName,artistName,songGenre);
         recyclerView.setAdapter(customAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(HomeActivity.this));
+
+
+        button_playlist.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, PlaylistActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
