@@ -24,12 +24,14 @@ public class DBHelper extends SQLiteOpenHelper
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table users(username TEXT primary key, password TEXT)");
         db.execSQL("CREATE TABLE songs(id INTEGER PRIMARY KEY AUTOINCREMENT, songName TEXT, authorName TEXT, genreName TEXT)");
+        db.execSQL("CREATE TABLE playlists(id INTEGER PRIMARY KEY AUTOINCREMENT, songNames TEXT)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("drop table if exists users");
         db.execSQL("drop table if exists songs");
+        db.execSQL("drop table if exists playlists");
         onCreate(db);
     }
 
@@ -165,6 +167,34 @@ public class DBHelper extends SQLiteOpenHelper
         else
         {
             Toast.makeText(context, "Successfully deleted!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public Boolean insertSongForPlaylist(String songs)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put("songNames", songs);
+
+        try
+        {
+            long result = db.insert("playlists", null, values);
+            if (result == -1)
+            {
+                Log.e("DBHelper", "Failed to insert playlist");
+                return false;
+            }
+            else
+            {
+                Log.d("DBHelper", "Songs inserted successfully");
+                return true;
+            }
+        }
+        catch (Exception e)
+        {
+            Log.e("DBHelper", "Error inserting playlist", e);
+            return false;
         }
     }
 }

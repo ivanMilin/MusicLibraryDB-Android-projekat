@@ -45,7 +45,8 @@ public class UpdateActivity extends AppCompatActivity {
 
         btn_update.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v)
+            {
                 DBHelper DB = new DBHelper(UpdateActivity.this);
                 Toast.makeText(UpdateActivity.this, "Kod ispravljen "  + songName2.getText().toString() + " " + artist2.getText().toString() + " " + genre2.getText().toString() + " ", Toast.LENGTH_SHORT).show();
                 DB.updateData(songID, songName2.getText().toString(), artist2.getText().toString(), genre2.getText().toString());
@@ -54,7 +55,8 @@ public class UpdateActivity extends AppCompatActivity {
         });
         btn_delete.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v)
+            {
                 confirmDialog();
             }
         });
