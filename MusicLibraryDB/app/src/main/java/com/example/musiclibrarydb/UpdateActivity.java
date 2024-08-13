@@ -4,8 +4,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -15,12 +17,16 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class UpdateActivity extends AppCompatActivity {
 
 
     EditText songName2, artist2, genre2;
     Button btn_update;
     Button btn_delete;
+    Spinner spinnerType;
 
     String songID, songName, artistName, songGenre;
 
@@ -40,6 +46,23 @@ public class UpdateActivity extends AppCompatActivity {
         genre2     = findViewById(R.id.editText_genre2);
         btn_update = findViewById(R.id.btn_update);
         btn_delete = findViewById(R.id.btn_delete);
+        spinnerType = findViewById(R.id.spinnerType);
+
+        List<String> spinnerItems = new ArrayList<>();
+        spinnerItems.add("songName");
+        spinnerItems.add("songGenre");
+        spinnerItems.add("artistName");
+
+        // Create an ArrayAdapter using a simple spinner layout
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, // or getContext() if inside a fragment
+                android.R.layout.simple_spinner_item,
+                spinnerItems
+        );
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        spinnerType.setAdapter(adapter);
 
         getAndSetIntentData();
 

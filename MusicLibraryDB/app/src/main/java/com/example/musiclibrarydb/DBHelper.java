@@ -22,9 +22,9 @@ public class DBHelper extends SQLiteOpenHelper
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table users(username TEXT primary key, password TEXT)");
-        db.execSQL("CREATE TABLE songs(id INTEGER PRIMARY KEY AUTOINCREMENT, songName TEXT, authorName TEXT, genreName TEXT)");
-        db.execSQL("CREATE TABLE playlists(id INTEGER PRIMARY KEY AUTOINCREMENT, songNames TEXT)");
+        db.execSQL("create table if not exists users(username TEXT primary key, password TEXT)");                                               //u zagradu ide koji su elementi te tabele - mozda je problem "if not exists"
+        db.execSQL("CREATE TABLE if not exists songs(id INTEGER PRIMARY KEY AUTOINCREMENT, songName TEXT, authorName TEXT, genreName TEXT)");   //u zagradu ide koji su elementi te tabele - mozda je problem "if not exists"
+        db.execSQL("CREATE TABLE if not exists playlists(id INTEGER PRIMARY KEY AUTOINCREMENT, songNames TEXT)");                               //u zagradu ide koji su elementi te tabele - mozda je problem "if not exists"
     }
 
     @Override
