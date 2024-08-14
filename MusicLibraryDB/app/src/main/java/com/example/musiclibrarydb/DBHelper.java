@@ -87,7 +87,7 @@ public class DBHelper extends SQLiteOpenHelper
 
 
         String create_table_playlists = "CREATE TABLE " + TABLE_PLAYLISTS + "("
-                                      + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                                      + KEY_ID + " INTEGER PRIMARY KEY,"
                                       + KEY_PLAYLIST_NAME + " TEXT,"
                                       + KEY_USER_ID + " INTEGER,"
                                       + "FOREIGN KEY(" + KEY_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + KEY_ID + ")"
@@ -95,14 +95,11 @@ public class DBHelper extends SQLiteOpenHelper
 
         // Create the user_playlists table
         String create_table_users_playlists = "CREATE TABLE " + TABLE_USER_PLAYLISTS + "("
-                                            + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                                            + KEY_USER_ID + " INTEGER,"
+                                            + KEY_ID + " INTEGER PRIMARY KEY,"
                                             + KEY_PLAYLIST_ID + " INTEGER,"
                                             + KEY_SONG_ID + " INTEGER,"
-                                            + "FOREIGN KEY(" + KEY_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + KEY_ID + "),"
                                             + "FOREIGN KEY(" + KEY_PLAYLIST_ID + ") REFERENCES " + TABLE_PLAYLISTS + "(" + KEY_ID + "),"
-                                            + "FOREIGN KEY(" + KEY_SONG_ID + ") REFERENCES " + TABLE_SONGS + "(" + KEY_ID + "),"
-                                            + "UNIQUE(" + KEY_USER_ID + ", " + KEY_PLAYLIST_ID + ", " + KEY_SONG_ID + ")"
+                                            + "FOREIGN KEY(" + KEY_SONG_ID + ") REFERENCES " + TABLE_SONGS + "(" + KEY_ID + ")"
                                             + ")";
 
 
@@ -324,7 +321,7 @@ public class DBHelper extends SQLiteOpenHelper
             cursor.close();
         }
 
-        db.close();
+        //db.close();
         return playlistId;
     }
     //==============================================================================================
@@ -343,7 +340,7 @@ public class DBHelper extends SQLiteOpenHelper
             cursor.close();
         }
 
-        db.close();
+        //db.close();
         return songId;
     }
     //==============================================================================================
@@ -370,48 +367,56 @@ public class DBHelper extends SQLiteOpenHelper
             success = result != -1;
         } finally {
             if (db != null && db.isOpen()) {
-                db.close();
+                //db.close();
             }
         }
 
         return success;
     }
     //==============================================================================================
-    public Boolean insertSongIntoUserPlaylist(String username, String playlistName, String songName) {
-        SQLiteDatabase db = null;
-        Boolean success = false;
+    @SuppressLint("Range")
+    public boolean addSongToPlaylist(String playlistName, String songName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        boolean success = false;
 
         try {
-            db = this.getWritableDatabase();
-            Log.d(TAG, "Database opened successfully.");
-
-            // Get IDs based on names
-            Long userId = getUserIdByUsername(username);
-            Long playlistId = getPlaylistIdByNameAndUser(playlistName, userId);
-            Long songId = getSongIdByName(songName);
-
-            // Ensure all IDs were found before proceeding
-            if (userId == null || playlistId == null || songId == null) {
-                Log.e(TAG, "Failed to get IDs. userId: " + userId + ", playlistId: " + playlistId + ", songId: " + songId);
+            // Retrieve the playlist ID using the playlist name
+            Long playlistId = getPlaylistIdByName(playlistName);
+            if (playlistId == null) {
+                Log.e("DB_ERROR", "Playlist not found: " + playlistName);
                 return false;
             }
 
-            // Insert the song into the user_playlist table
+            // Retrieve the song ID using the song name
+            String songQuery = "SELECT " + KEY_ID + " FROM " + TABLE_SONGS + " WHERE " + KEY_SONG_NAME + " = ?";
+            Cursor cursor = db.rawQuery(songQuery, new String[]{songName});
+
+            Long songId = null;
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    songId = cursor.getLong(cursor.getColumnIndex(KEY_ID));
+                }
+                cursor.close();
+            }
+
+            if (songId == null) {
+                Log.e("DB_ERROR", "Song not found: " + songName);
+                return false;
+            }
+
+            // Prepare the values to be inserted
             ContentValues values = new ContentValues();
-            values.put(KEY_USER_ID, userId);
             values.put(KEY_PLAYLIST_ID, playlistId);
             values.put(KEY_SONG_ID, songId);
 
-            long result = db.insert(TABLE_USER_PLAYLISTS, null, values);
-            success = result != -1;
-            Log.d(TAG, "Insert result: " + result);
+            // Insert the values into the table
+            long rowId = db.insert(TABLE_USER_PLAYLISTS, null, values);
+            success = (rowId != -1);  // Check if the insertion was successful
+
         } catch (Exception e) {
-            Log.e(TAG, "Error inserting song into user playlist", e);
+            Log.e("DB_ERROR", "Error inserting song into playlist", e);
         } finally {
-            if (db != null && db.isOpen()) {
-                db.close();
-                Log.d(TAG, "Database closed.");
-            }
+            db.close();  // Ensure the database is closed after the operation
         }
 
         return success;
@@ -425,7 +430,7 @@ public class DBHelper extends SQLiteOpenHelper
         // Get userId based on username
         Long userId = getUserIdByUsername(username);
         if (userId == null) {
-            db.close();
+            //db.close();
             return playlists;
         }
 
@@ -464,7 +469,7 @@ public class DBHelper extends SQLiteOpenHelper
             cursor.close();
         }
 
-        db.close();
+        //db.close();
         return playlistId;
     }
     //==============================================================================================

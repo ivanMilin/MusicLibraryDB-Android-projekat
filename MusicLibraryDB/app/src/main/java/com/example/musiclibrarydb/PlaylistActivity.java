@@ -168,17 +168,16 @@ public class PlaylistActivity extends AppCompatActivity {
         for (int index : songsList) {
             playlistBuilder.append(songsArray[index]).append("\n");
         }
-        if (playlistBuilder.length() > 0) {
+        //if (playlistBuilder.length() > 0) {
             playlistBuilder.setLength(playlistBuilder.length() - 1);
 
             playlistName = "Playlist" + (playlistNames.size() + 1);
-            //DB.insertSongIntoUserPlaylist(usernameFromIntent, playlistName, "a");
             DB.insertPlaylist(playlistName, usernameFromIntent);
             playlists.put(playlistName, playlistBuilder.toString());
             playlistNames.add(playlistName);
             spinnerAdapter.notifyDataSetChanged();
-        }
-
+            DB.addSongToPlaylist(playlistName, "Danza Kuduro");
+        //}
         songsList.clear();
         availableSongs.setText(""); // Clear the TextView
     }
