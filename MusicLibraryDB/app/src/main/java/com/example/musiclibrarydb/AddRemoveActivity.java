@@ -44,10 +44,16 @@ public class AddRemoveActivity extends AppCompatActivity {
             public void onClick(View v) {
                 DBHelper DB = new DBHelper(AddRemoveActivity.this);
 
-                Boolean checkIsItDone = DB.insertSong(editText_songName.getText().toString().trim(), editText_artist.getText().toString().trim(), editText_genre.getText().toString().trim());
-                if(checkIsItDone == true)
+                Boolean checkIsItDone1 = DB.insertSong(editText_songName.getText().toString().trim(), editText_artist.getText().toString().trim(), editText_genre.getText().toString().trim());
+                Boolean checkIsItDone2 = DB.insertGenre(editText_genre.getText().toString().trim());
+                Boolean checkIsItDone3 =DB.insertArtist(editText_artist.getText().toString().trim(),editText_genre.getText().toString().trim());
+
+                if(checkIsItDone1 == true && checkIsItDone2 == true && checkIsItDone3 == true)
                 {
                     Toast.makeText(AddRemoveActivity.this,"Input DONE!", Toast.LENGTH_LONG).show();
+                    editText_songName.setText("");
+                    editText_artist.setText("");
+                    editText_genre.setText("");
                 }
                 else
                 {

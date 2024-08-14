@@ -34,9 +34,9 @@ public class HomeActivity extends AppCompatActivity {
     Button button_playlist;
     FloatingActionButton add_remove_button;
 
-
+    String username;
     DBHelper DB;
-    ArrayList <String> songID, songName, artistName, songGenre;
+    ArrayList <String> songID, songName, artistName, songGenre, musicNote;
     CustomAdapter customAdapter;
 
     EditText dataForSearch;
@@ -53,6 +53,18 @@ public class HomeActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("username")) {
+            username = intent.getStringExtra("username");
+        }
+
+        if (username != null) {
+            username = username.toString();
+        } else {
+            // Handle the case where username is null, e.g., show a message or assign a default value
+            username = "defaultUsername";  // Replace with your logic
+            }
 
         recyclerView = findViewById(R.id.recycleView);
         add_remove_button = findViewById(R.id.floatingActionButton);
@@ -83,10 +95,11 @@ public class HomeActivity extends AppCompatActivity {
         songName   = new ArrayList<>();
         artistName = new ArrayList<>();
         songGenre  = new ArrayList<>();
+        musicNote  = new ArrayList<>();
 
         storeDataInArrays();
 
-        customAdapter = new CustomAdapter(HomeActivity.this, this,songID,songName,artistName,songGenre);
+        customAdapter = new CustomAdapter(HomeActivity.this, this,songID,songName,artistName,songGenre,musicNote);
         recyclerView.setAdapter(customAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(HomeActivity.this));
 
@@ -95,6 +108,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(HomeActivity.this, PlaylistActivity.class);
+                intent.putExtra("username",username);
                 startActivity(intent);
             }
         });
@@ -186,6 +200,7 @@ public class HomeActivity extends AppCompatActivity {
         {
             while(cursor.moveToNext())
             {
+                musicNote.add("♪");
                 songID.add(cursor.getString(0));
                 songName.add(cursor.getString(1));
                 artistName.add(cursor.getString(2));

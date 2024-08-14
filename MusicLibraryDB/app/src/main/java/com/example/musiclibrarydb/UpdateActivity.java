@@ -71,7 +71,7 @@ public class UpdateActivity extends AppCompatActivity {
             public void onClick(View v)
             {
                 DBHelper DB = new DBHelper(UpdateActivity.this);
-                Toast.makeText(UpdateActivity.this, "Kod ispravljen "  + songName2.getText().toString() + " " + artist2.getText().toString() + " " + genre2.getText().toString() + " ", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UpdateActivity.this, "Kod ispravljen "  + songID + " " + songName2.getText().toString() + " " + artist2.getText().toString() + " " + genre2.getText().toString() + " ", Toast.LENGTH_SHORT).show();
                 DB.updateData(songID, songName2.getText().toString(), artist2.getText().toString(), genre2.getText().toString());
                 finish();
             }

@@ -26,7 +26,7 @@ import java.util.Map;
 public class PlaylistActivity extends AppCompatActivity {
 
     MaterialCardView selectSongs;
-    TextView availableSongs;
+    TextView availableSongs,textView2;
     boolean[] selectedSongs;
     ArrayList<Integer> songsList = new ArrayList<>();
     String[] songsArray;
@@ -39,6 +39,7 @@ public class PlaylistActivity extends AppCompatActivity {
 
     DBHelper dbHelper; // Declare DBHelper instance
     String selectedPlaylist;
+    String usernameFromIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +57,7 @@ public class PlaylistActivity extends AppCompatActivity {
 
         selectSongs = findViewById(R.id.selectCard);
         availableSongs = findViewById(R.id.availableSongs);
+        textView2 = findViewById(R.id.textView2);
         selectedSongs = new boolean[songsArray.length];
 
         spinner = findViewById(R.id.spinner);
@@ -69,6 +71,8 @@ public class PlaylistActivity extends AppCompatActivity {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(spinnerAdapter);
 
+        usernameFromIntent = getIntent().getStringExtra("username").toString();
+
         selectSongs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -80,8 +84,6 @@ public class PlaylistActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 addPlaylist();
-
-                DBHelper DB = new DBHelper(PlaylistActivity.this);
                 //DB.insertSongForPlaylist(playlistNames);
 
                 songsList.clear();
@@ -105,7 +107,7 @@ public class PlaylistActivity extends AppCompatActivity {
             }
         });
     }
-
+    //==============================================================================================
     private void loadSongsFromDatabase() {
         Cursor cursor = dbHelper.readAllSongsName();
         if (cursor != null) {
@@ -115,10 +117,10 @@ public class PlaylistActivity extends AppCompatActivity {
                 songsList.add(songName);
             }
             cursor.close();
-            songsArray = songsList.toArray(new String[0]); // Convert list to array
+            songsArray = songsList.toArray(new String[0]);
         }
     }
-
+    //==============================================================================================
     private void showCoursesDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(PlaylistActivity.this);
 
@@ -142,12 +144,13 @@ public class PlaylistActivity extends AppCompatActivity {
         });
         builder.show();
     }
-
+    //==============================================================================================
     private void updateAvailableSongs() {
         StringBuilder stringBuilder = new StringBuilder();
 
         for (int i = 0; i < songsList.size(); i++) {
             stringBuilder.append(songsArray[songsList.get(i)]);
+
 
             if (i != songsList.size() - 1) {
                 stringBuilder.append(", ");
@@ -155,16 +158,22 @@ public class PlaylistActivity extends AppCompatActivity {
         }
         availableSongs.setText(stringBuilder.toString()); // Update the TextView with selected songs
     }
-
+    //==============================================================================================
     private void addPlaylist() {
         StringBuilder playlistBuilder = new StringBuilder();
+        DBHelper DB = new DBHelper(PlaylistActivity.this);
+        String playlistName;
+
         playlistBuilder.append(":");
         for (int index : songsList) {
             playlistBuilder.append(songsArray[index]).append("\n");
         }
         if (playlistBuilder.length() > 0) {
             playlistBuilder.setLength(playlistBuilder.length() - 1);
-            String playlistName = "Playlist" + (playlistNames.size() + 1);
+
+            playlistName = "Playlist" + (playlistNames.size() + 1);
+            //DB.insertSongIntoUserPlaylist(usernameFromIntent, playlistName, "a");
+            DB.insertPlaylist(playlistName, usernameFromIntent);
             playlists.put(playlistName, playlistBuilder.toString());
             playlistNames.add(playlistName);
             spinnerAdapter.notifyDataSetChanged();
@@ -173,7 +182,7 @@ public class PlaylistActivity extends AppCompatActivity {
         songsList.clear();
         availableSongs.setText(""); // Clear the TextView
     }
-
+    //==============================================================================================
     private void removeSelectedPlaylist() {
         int selectedPosition = spinner.getSelectedItemPosition();
         if (selectedPosition >= 0 && selectedPosition < playlistNames.size()) {
@@ -183,7 +192,7 @@ public class PlaylistActivity extends AppCompatActivity {
             spinnerAdapter.notifyDataSetChanged(); // Update the Spinner
         }
     }
-
+    //==============================================================================================
     private void showSelectedPlaylist() {
         int selectedPosition = spinner.getSelectedItemPosition();
         if (selectedPosition >= 0 && selectedPosition < playlistNames.size()) {
@@ -210,7 +219,7 @@ public class PlaylistActivity extends AppCompatActivity {
             builder.show();
         }
     }
-
+    //==============================================================================================
     private void showEditDialog(String playlistName, String[] songs) {
         boolean[] checkedItems = new boolean[songs.length];
         AlertDialog.Builder editDialogBuilder = new AlertDialog.Builder(PlaylistActivity.this);

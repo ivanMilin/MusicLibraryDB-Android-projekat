@@ -20,9 +20,9 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHold
 {
     private Context context;
     Activity activity;
-    private ArrayList songID, songName, artistName, songGenre;
+    private ArrayList songID, songName, artistName, songGenre, musicNote;
 
-    CustomAdapter(Activity activity, Context context, ArrayList songID, ArrayList songName,ArrayList artistName,ArrayList songGenre)
+    CustomAdapter(Activity activity, Context context, ArrayList songID, ArrayList songName,ArrayList artistName,ArrayList songGenre, ArrayList musicNote)
     {
         this.activity = activity;
         this.context  = context;
@@ -30,6 +30,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHold
         this.songName = songName;
         this.artistName = artistName;
         this.songGenre  = songGenre;
+        this.musicNote  = musicNote;
 
     }
 
@@ -44,7 +45,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHold
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, @SuppressLint("RecyclerView") final int position) {
-        holder.songID.setText(String.valueOf(songID.get(position)));
+        holder.songID.setText(String.valueOf(musicNote.get(position)));
         holder.songName.setText(String.valueOf(songName.get(position)));
         holder.artistName.setText(String.valueOf(artistName.get(position)));
         holder.songGenre.setText(String.valueOf(songGenre.get(position)));

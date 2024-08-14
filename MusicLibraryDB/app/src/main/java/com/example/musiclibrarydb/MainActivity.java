@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
 
+    String username;
     EditText et_username, et_password;
     Button btn_login, btn_register;
 
@@ -57,7 +58,9 @@ public class MainActivity extends AppCompatActivity {
 
                     if(checkuserpass == true)
                     {
+                        username = et_username.getText().toString();
                         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                        intent.putExtra("username",username);
                         startActivity(intent);
                     }
                     else
