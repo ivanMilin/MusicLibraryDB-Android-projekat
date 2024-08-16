@@ -473,6 +473,112 @@ public class DBHelper extends SQLiteOpenHelper
         return playlistId;
     }
     //==============================================================================================
+    @SuppressLint("Range")
+    public ArrayList<String> getAllPlaylistsByUsername(String username)
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        ArrayList<String> playlists = new ArrayList<>();
+
+        // Get userId based on username
+        Long userId = getUserIdByUsername(username);
+        if (userId == null) {
+            return playlists;  // Return an empty list if the user is not found
+        }
+
+        // Query to get all playlist names associated with the user
+        String query = "SELECT " + KEY_PLAYLIST_NAME + " FROM " + TABLE_PLAYLISTS + " WHERE " + KEY_USER_ID + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    playlists.add(cursor.getString(cursor.getColumnIndex(KEY_PLAYLIST_NAME)));
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+
+        db.close();
+        return playlists;
+    }
+    //==============================================================================================
+    @SuppressLint("Range")
+    public ArrayList<String> getAllSongsInPlaylist(String username, String playlistName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        ArrayList<String> songs = new ArrayList<>();
+
+        // Get userId based on username
+        Long userId = getUserIdByUsername(username);
+        if (userId == null) {
+            return songs;  // Return an empty list if the user is not found
+        }
+
+        // Get playlistId based on playlist name and userId
+        Long playlistId = getPlaylistIdByNameAndUser(playlistName, userId);
+        if (playlistId == null) {
+            return songs;  // Return an empty list if the playlist is not found
+        }
+
+        // Query to get all songs in the specific playlist
+        String query = "SELECT " + KEY_SONG_NAME + " FROM " + TABLE_SONGS + " s"
+                + " INNER JOIN " + TABLE_USER_PLAYLISTS + " up ON s." + KEY_ID + " = up." + KEY_SONG_ID
+                + " WHERE up." + KEY_PLAYLIST_ID + " = ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(playlistId)});
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    songs.add(cursor.getString(cursor.getColumnIndex(KEY_SONG_NAME)));
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+
+        db.close();
+        return songs;
+    }
+    //==============================================================================================
+    @SuppressLint("Range")
+    public void removePlaylist(String playlistName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Step 1: Get the playlist ID for the given playlist name
+        String playlistIdQuery = "SELECT " + KEY_ID + " FROM " + TABLE_PLAYLISTS + " WHERE " + KEY_PLAYLIST_NAME + " = ?";
+        Cursor cursor = null;
+        int playlistId = -1;
+
+        try {
+            cursor = db.rawQuery(playlistIdQuery, new String[]{playlistName});
+            if (cursor.moveToFirst()) {
+                playlistId = cursor.getInt(cursor.getColumnIndex(KEY_ID));
+            }
+
+            // If playlistId is found, proceed with deletion
+            if (playlistId != -1) {
+                // Step 2: Delete all entries from the user_playlists table for the found playlist ID
+                String deleteUserPlaylistsQuery = "DELETE FROM " + TABLE_USER_PLAYLISTS + " WHERE " + KEY_PLAYLIST_ID + " = ?";
+                db.execSQL(deleteUserPlaylistsQuery, new String[]{String.valueOf(playlistId)});
+
+                // Step 3: Delete the playlist from the playlists table
+                String deletePlaylistQuery = "DELETE FROM " + TABLE_PLAYLISTS + " WHERE " + KEY_ID + " = ?";
+                db.execSQL(deletePlaylistQuery, new String[]{String.valueOf(playlistId)});
+
+                Toast.makeText(context, "Playlist removed: " + playlistName, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(context, "Playlist not found: " + playlistName, Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Error removing playlist: " + playlistName, Toast.LENGTH_SHORT).show();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+    }
+    //==============================================================================================
 }
 //https://www.youtube.com/watch?v=yJ02XTKiuAc
 //https://www.youtube.com/playlist?list=PLSrm9z4zp4mGK0g_0_jxYGgg3os9tqRUQ

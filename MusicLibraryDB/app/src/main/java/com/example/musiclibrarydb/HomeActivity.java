@@ -1,5 +1,6 @@
 package com.example.musiclibrarydb;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.database.Cursor;
@@ -51,8 +52,10 @@ public class HomeActivity extends AppCompatActivity {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+
             return insets;
         });
+
 
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("username")) {
@@ -90,13 +93,13 @@ public class HomeActivity extends AppCompatActivity {
 
         spinner.setAdapter(adapter);
 
-        DB = new DBHelper(HomeActivity.this);
         songID     = new ArrayList<>();
         songName   = new ArrayList<>();
         artistName = new ArrayList<>();
         songGenre  = new ArrayList<>();
         musicNote  = new ArrayList<>();
 
+        DB = new DBHelper(HomeActivity.this);
         storeDataInArrays();
 
         customAdapter = new CustomAdapter(HomeActivity.this, this,songID,songName,artistName,songGenre,musicNote);
@@ -179,7 +182,7 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
     }
-
+    //==============================================================================================
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -187,10 +190,17 @@ public class HomeActivity extends AppCompatActivity {
         if(requestCode == 1)
             recreate();
     }
-
+    //==============================================================================================
+    @SuppressLint("Range")
     void storeDataInArrays()
     {
         Cursor cursor = DB.readAllData();
+
+        songID.clear();
+        songName.clear();
+        artistName.clear();
+        songGenre.clear();
+        musicNote.clear();
 
         if(cursor.getCount() == 0)
         {
@@ -201,12 +211,40 @@ public class HomeActivity extends AppCompatActivity {
             while(cursor.moveToNext())
             {
                 musicNote.add("♪");
-                songID.add(cursor.getString(0));
-                songName.add(cursor.getString(1));
-                artistName.add(cursor.getString(2));
-                songGenre.add(cursor.getString(3));
+                songID.add(cursor.getString(cursor.getColumnIndex("id"))); // ID
+                songName.add(cursor.getString(cursor.getColumnIndex("name"))); // Song Name
+                artistName.add(cursor.getString(cursor.getColumnIndex("artist_name"))); // Artist Name
+                songGenre.add(cursor.getString(cursor.getColumnIndex("genre"))); // Song Genre
             }
         }
+    }
+    //==============================================================================================
+    @SuppressLint("MissingSuperCall")
+    @Override
+    public void onBackPressed() {
+        // Create an AlertDialog.Builder
+        new AlertDialog.Builder(this)
+                .setTitle("Log Out")
+                .setMessage("Are you sure you want to log out?")
+                .setCancelable(false) // Prevent the dialog from being dismissed by clicking outside or pressing the back button
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    // If the user clicks "Yes", finish the activity
+                    finish();
+                })
+                .setNegativeButton("No", (dialog, which) -> {
+                    // If the user clicks "No", just dismiss the dialog
+                    dialog.dismiss();
+                })
+                .create()
+                .show();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Reload the data from the database
+        storeDataInArrays();
+        // Notify the adapter that the data has changed
+        customAdapter.notifyDataSetChanged();
     }
 }

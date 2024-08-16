@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+
             return insets;
         });
 
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
         btn_register = findViewById(R.id.register);
 
         DB = new DBHelper(this);
+        initializeFewSongs();
 
         btn_login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
                         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                         intent.putExtra("username",username);
                         startActivity(intent);
+
                     }
                     else
                     {
@@ -105,5 +108,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    void initializeFewSongs()
+    {
+        DB.insertSong("Waka Waka", "Shakira", "Afropop");
+        DB.insertGenre("Afropop");
+        DB.insertArtist("Shakira", "Afropop");
+
+        DB.insertSong("Danza Kuduro", "Don Omar", "Regeton");
+        DB.insertGenre("Regeton");
+        DB.insertArtist("Don Omar", "Regeton");
+
+        DB.insertSong("The Door", "Teddy Swimms", "Pop");
+        DB.insertGenre("Pop");
+        DB.insertArtist("Teddy Swimms", "Pop");
     }
 }

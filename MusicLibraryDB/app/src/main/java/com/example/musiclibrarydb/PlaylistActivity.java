@@ -1,11 +1,17 @@
 package com.example.musiclibrarydb;
 
+import static java.lang.reflect.Array.get;
+
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,16 +36,18 @@ public class PlaylistActivity extends AppCompatActivity {
     boolean[] selectedSongs;
     ArrayList<Integer> songsList = new ArrayList<>();
     String[] songsArray;
+    ArrayList<String> selectedSongsForPlaylist = new ArrayList<>();
 
     Button button_add, button_showPlaylist, button_remove;
     Spinner spinner;
-    ArrayList<String> playlistNames = new ArrayList<>();
     ArrayAdapter<String> spinnerAdapter;
-    Map<String, String> playlists = new HashMap<>(); // Map to store playlist names and their songs
 
-    DBHelper dbHelper; // Declare DBHelper instance
-    String selectedPlaylist;
+    DBHelper dbHelper;
     String usernameFromIntent;
+    String playListName;
+    ArrayList<String> songsInOnePlaylist = new ArrayList<>();
+
+    ArrayList<String> SpinnerList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,11 +74,6 @@ public class PlaylistActivity extends AppCompatActivity {
         button_remove = findViewById(R.id.button_remove);
         button_showPlaylist = findViewById(R.id.button_showPlaylist);
 
-        // Initialize the spinner adapter
-        spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, playlistNames);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(spinnerAdapter);
-
         usernameFromIntent = getIntent().getStringExtra("username").toString();
 
         selectSongs.setOnClickListener(new View.OnClickListener() {
@@ -83,12 +86,19 @@ public class PlaylistActivity extends AppCompatActivity {
         button_add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                addPlaylist();
-                //DB.insertSongForPlaylist(playlistNames);
+                if(!playListName.isEmpty())
+                {
+                    spinnerAdapter.add(playListName);
+                    addPlaylistWithSongs();
 
-                songsList.clear();
-                for (int i = 0; i < selectedSongs.length; i++) {
-                    selectedSongs[i] = false;
+                    songsList.clear();
+                    for (int i = 0; i < selectedSongs.length; i++) {
+                        selectedSongs[i] = false;
+                    }
+                }
+                else
+                {
+                    Toast.makeText(PlaylistActivity.this, "Playlist name is empty", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -96,16 +106,37 @@ public class PlaylistActivity extends AppCompatActivity {
         button_showPlaylist.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showSelectedPlaylist();
+
+                if (spinner.getAdapter() != null && spinner.getAdapter().getCount() > 0) {
+                    String selectedItem = spinner.getSelectedItem().toString();
+
+                    songsInOnePlaylist = dbHelper.getAllSongsInPlaylist(usernameFromIntent, selectedItem);
+                    showSongsInPlaylist(songsInOnePlaylist);
+                }
+                else
+                {
+                    Toast.makeText(PlaylistActivity.this, "Spinner is empty!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
         button_remove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                removeSelectedPlaylist();
+                dbHelper.removePlaylist(spinner.getSelectedItem().toString());
+
+                int selectedPosition = spinner.getSelectedItemPosition();
+                if (selectedPosition >= 0 && selectedPosition < SpinnerList.size())
+                {
+                    String playlistName = SpinnerList.get(selectedPosition);
+                    SpinnerList.remove(selectedPosition);
+                    spinnerAdapter.notifyDataSetChanged();
+                    loadPlaylistsIntoSpinner();
+                }
             }
         });
+
+        loadPlaylistsIntoSpinner(); // Load playlists into spinner
     }
     //==============================================================================================
     private void loadSongsFromDatabase() {
@@ -122,26 +153,53 @@ public class PlaylistActivity extends AppCompatActivity {
     }
     //==============================================================================================
     private void showCoursesDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(PlaylistActivity.this);
+        // Create an EditText for the playlist name
+        final EditText editTextPlaylistName = new EditText(PlaylistActivity.this);
+        editTextPlaylistName.setHint("Playlist name :");
+        editTextPlaylistName.setInputType(InputType.TYPE_CLASS_TEXT);
 
+        // Create a container to hold the EditText and the MultiChoiceItems
+        LinearLayout layout = new LinearLayout(PlaylistActivity.this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(16, 16, 16, 16);
+        layout.addView(editTextPlaylistName);  // Add the EditText to the layout
+
+        // Create the AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(PlaylistActivity.this);
         builder.setTitle("Select Songs for playlist");
         builder.setCancelable(false);
 
+        // Add the layout containing EditText to the dialog
+        builder.setView(layout);
+
+        // Add the MultiChoiceItems (songs) to the dialog
         builder.setMultiChoiceItems(songsArray, selectedSongs, new DialogInterface.OnMultiChoiceClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which, boolean isChecked) {
                 if (isChecked) {
                     songsList.add(which);
-                } else {
+                }
+                else
+                {
                     songsList.remove((Integer) which);
                 }
             }
-        }).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        });
+
+        // Set the Positive Button for the dialog
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                updateAvailableSongs();
+                playListName = editTextPlaylistName.getText().toString().trim();
+
+                if (!playListName.isEmpty()) {
+                    // You can use the playlistName variable for further processing
+                    updateAvailableSongs();
+                }
             }
         });
+
+        // Show the dialog
         builder.show();
     }
     //==============================================================================================
@@ -151,6 +209,8 @@ public class PlaylistActivity extends AppCompatActivity {
         for (int i = 0; i < songsList.size(); i++) {
             stringBuilder.append(songsArray[songsList.get(i)]);
 
+            selectedSongsForPlaylist.add(songsArray[songsList.get(i)]);
+
 
             if (i != songsList.size() - 1) {
                 stringBuilder.append(", ");
@@ -159,93 +219,134 @@ public class PlaylistActivity extends AppCompatActivity {
         availableSongs.setText(stringBuilder.toString()); // Update the TextView with selected songs
     }
     //==============================================================================================
-    private void addPlaylist() {
+    private void addPlaylistWithSongs() {
         StringBuilder playlistBuilder = new StringBuilder();
         DBHelper DB = new DBHelper(PlaylistActivity.this);
-        String playlistName;
 
         playlistBuilder.append(":");
-        for (int index : songsList) {
+        for (int index : songsList)
+        {
             playlistBuilder.append(songsArray[index]).append("\n");
         }
-        //if (playlistBuilder.length() > 0) {
-            playlistBuilder.setLength(playlistBuilder.length() - 1);
 
-            playlistName = "Playlist" + (playlistNames.size() + 1);
-            DB.insertPlaylist(playlistName, usernameFromIntent);
-            playlists.put(playlistName, playlistBuilder.toString());
-            playlistNames.add(playlistName);
-            spinnerAdapter.notifyDataSetChanged();
-            DB.addSongToPlaylist(playlistName, "Danza Kuduro");
-        //}
+        playlistBuilder.setLength(playlistBuilder.length() - 1);
+
+        DB.insertPlaylist(playListName, usernameFromIntent);
+
+        spinnerAdapter.notifyDataSetChanged();
+
+        for (String song : selectedSongsForPlaylist)
+        {
+            DB.addSongToPlaylist(playListName, song);
+        }
+        selectedSongsForPlaylist.clear();
+
+
         songsList.clear();
-        availableSongs.setText(""); // Clear the TextView
+        availableSongs.setText("");
     }
     //==============================================================================================
-    private void removeSelectedPlaylist() {
-        int selectedPosition = spinner.getSelectedItemPosition();
-        if (selectedPosition >= 0 && selectedPosition < playlistNames.size()) {
-            String playlistName = playlistNames.get(selectedPosition);
-            playlists.remove(playlistName); // Remove from map
-            playlistNames.remove(selectedPosition); // Remove from list
-            spinnerAdapter.notifyDataSetChanged(); // Update the Spinner
+    private void loadPlaylistsIntoSpinner() {
+        ArrayList<String> playlists = dbHelper.getAllPlaylistsByUsername(usernameFromIntent);
+        SpinnerList = playlists;
+
+        // Set up the spinner adapter with the playlist names
+        spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, playlists);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(spinnerAdapter);
+
+        // Update the spinner with the loaded playlists
+        if (!playlists.isEmpty()) {
+            spinnerAdapter.notifyDataSetChanged();
         }
     }
     //==============================================================================================
-    private void showSelectedPlaylist() {
-        int selectedPosition = spinner.getSelectedItemPosition();
-        if (selectedPosition >= 0 && selectedPosition < playlistNames.size()) {
-            String playlistName = playlistNames.get(selectedPosition);
-            selectedPlaylist = playlists.get(playlistName);
+    private void showSongsInPlaylist(ArrayList<String> songsInOnePlaylist) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(PlaylistActivity.this);
+        builder.setTitle("Songs in Playlist :\n\n");
 
-            // Remove leading ":" if it exists
-            if (selectedPlaylist.startsWith(":")) {
-                selectedPlaylist = selectedPlaylist.substring(1);
+        // Create a LinearLayout to hold the list of songs
+        LinearLayout linearLayout = new LinearLayout(this);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+        // Add each song to the LinearLayout
+        for (String song : songsInOnePlaylist) {
+            TextView textView = new TextView(this);
+            textView.setText("○ "+song);
+            textView.setPadding(120, 16, 16, 16);
+            textView.setTextSize(16);
+            linearLayout.addView(textView);
+        }
+
+        // Set the LinearLayout as the content view of the AlertDialog
+        builder.setView(linearLayout);
+
+        // Add a button to close the dialog
+        builder.setPositiveButton("Close", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                dialog.dismiss();
             }
+        }).setNeutralButton("Edit", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                showEditDialog(playListName, songsArray);
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(PlaylistActivity.this);
-            builder.setTitle("Songs in " + playlistName + ":"); // Concatenate playlist name to title
-            builder.setMessage(selectedPlaylist);
-            builder.setPositiveButton("OK", null);
+            }
+        });
 
-            builder.setNeutralButton("Edit", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    // Show a dialog to edit the playlist
-                    showEditDialog(playlistName, selectedPlaylist.split("\n"));
-                }
-            });
-            builder.show();
-        }
+        // Show the AlertDialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
     //==============================================================================================
-    private void showEditDialog(String playlistName, String[] songs) {
-        boolean[] checkedItems = new boolean[songs.length];
+    private void showEditDialog(String playlistName, String[] allSongs) {
+        // Retrieve the currently selected songs for the playlist
+        ArrayList<String> currentSongsList = songsInOnePlaylist; // Assuming this is an ArrayList<String>
+        if (currentSongsList == null) {
+            currentSongsList = new ArrayList<>();
+        }
+
+        // Prepare an array to keep track of selected items
+        boolean[] checkedItems = new boolean[allSongs.length];
+
+        // Mark items as checked if they are in the current playlist
+        for (int i = 0; i < allSongs.length; i++) {
+            if (currentSongsList.contains(allSongs[i].trim())) {
+                checkedItems[i] = true;
+            }
+        }
+
         AlertDialog.Builder editDialogBuilder = new AlertDialog.Builder(PlaylistActivity.this);
         editDialogBuilder.setTitle("Edit " + playlistName);
 
-        editDialogBuilder.setMultiChoiceItems(songs, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+        editDialogBuilder.setMultiChoiceItems(allSongs, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int index, boolean isChecked) {
                 checkedItems[index] = isChecked;
             }
         });
 
-        editDialogBuilder.setPositiveButton("Remove", new DialogInterface.OnClickListener() {
+        editDialogBuilder.setPositiveButton("Update", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                StringBuilder updatedPlaylist = new StringBuilder();
-                for (int i = 0; i < songs.length; i++) {
-                    if (!checkedItems[i]) {
-                        updatedPlaylist.append(songs[i]).append("\n");
+            public void onClick(DialogInterface dialog, int which)
+            {
+                dbHelper.removePlaylist(playListName);
+                dbHelper.insertPlaylist(playListName,usernameFromIntent);
+
+                ArrayList<String> updatedPlaylist = new ArrayList<>();
+                for (int i = 0; i < allSongs.length; i++) {
+                    if (checkedItems[i]) {
+                        updatedPlaylist.add(allSongs[i]);
+                        dbHelper.addSongToPlaylist(playListName,allSongs[i]);
                     }
                 }
-                if (updatedPlaylist.length() > 0) {
-                    updatedPlaylist.setLength(updatedPlaylist.length() - 1); // Remove the trailing newline
-                }
+                updatedPlaylist.clear();
+                songsInOnePlaylist.clear();
 
                 // Update the playlist map with the new song list
-                playlists.put(playlistName, updatedPlaylist.toString());
+                //playlists.put(playlistName, String.join("\n", updatedPlaylist));
 
                 Toast.makeText(PlaylistActivity.this, "Playlist updated", Toast.LENGTH_SHORT).show();
             }
@@ -254,7 +355,12 @@ public class PlaylistActivity extends AppCompatActivity {
         editDialogBuilder.setNegativeButton("Cancel", null);
         editDialogBuilder.show();
     }
-
+    //==============================================================================================
+    @SuppressLint("MissingSuperCall")
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
 }
 
 

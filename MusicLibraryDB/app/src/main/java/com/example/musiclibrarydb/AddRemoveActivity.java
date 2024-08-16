@@ -1,5 +1,6 @@
 package com.example.musiclibrarydb;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -45,7 +46,7 @@ public class AddRemoveActivity extends AppCompatActivity {
                 DBHelper DB = new DBHelper(AddRemoveActivity.this);
 
                 Boolean checkIsItDone1 = DB.insertSong(editText_songName.getText().toString().trim(), editText_artist.getText().toString().trim(), editText_genre.getText().toString().trim());
-                Boolean checkIsItDone2 = DB.insertGenre(editText_genre.getText().toString().trim());
+                Boolean checkIsItDone2 = DB.insertGenre(editText_artist.getText().toString().trim());
                 Boolean checkIsItDone3 =DB.insertArtist(editText_artist.getText().toString().trim(),editText_genre.getText().toString().trim());
 
                 if(checkIsItDone1 == true && checkIsItDone2 == true && checkIsItDone3 == true)
@@ -64,12 +65,16 @@ public class AddRemoveActivity extends AppCompatActivity {
 
         btn_goBack.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(AddRemoveActivity.this, HomeActivity.class);
-                startActivity(intent);
+            public void onClick(View v)
+            {
+                finish();
             }
         });
     }
-
+    @SuppressLint("MissingSuperCall")
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
 
 }
