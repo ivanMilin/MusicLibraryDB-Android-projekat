@@ -23,6 +23,8 @@ public class AddRemoveActivity extends AppCompatActivity {
     Button btn_add;
     Button btn_goBack;
 
+    DBHelper DB = new DBHelper(AddRemoveActivity.this);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,10 +45,9 @@ public class AddRemoveActivity extends AppCompatActivity {
         btn_add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DBHelper DB = new DBHelper(AddRemoveActivity.this);
 
                 Boolean checkIsItDone1 = DB.insertSong(editText_songName.getText().toString().trim(), editText_artist.getText().toString().trim(), editText_genre.getText().toString().trim());
-                Boolean checkIsItDone2 = DB.insertGenre(editText_artist.getText().toString().trim());
+                Boolean checkIsItDone2 = DB.insertGenre(editText_genre.getText().toString().trim());
                 Boolean checkIsItDone3 =DB.insertArtist(editText_artist.getText().toString().trim(),editText_genre.getText().toString().trim());
 
                 if(checkIsItDone1 == true && checkIsItDone2 == true && checkIsItDone3 == true)
@@ -67,6 +68,7 @@ public class AddRemoveActivity extends AppCompatActivity {
             @Override
             public void onClick(View v)
             {
+                initializeFewSongs();
                 finish();
             }
         });
@@ -75,6 +77,41 @@ public class AddRemoveActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         finish();
+    }
+
+    void initializeFewSongs()
+    {
+        DB.insertSong("Waka Waka", "Shakira", "Afropop");
+        DB.insertGenre("Afropop");
+        DB.insertArtist("Shakira", "Afropop");
+
+        DB.insertSong("Danza Kuduro", "Don Omar", "Regeton");
+        DB.insertGenre("Regeton");
+        DB.insertArtist("Don Omar", "Regeton");
+
+        DB.insertSong("The Door", "Teddy Swimms", "Pop");
+        DB.insertGenre("Pop");
+        DB.insertArtist("Teddy Swimms", "Pop");
+
+        DB.insertSong("Timber", "Pitbull", "R&B");
+        DB.insertGenre("R&B");
+        DB.insertArtist("Pitbull", "R&B");
+
+        DB.insertSong("Rain Over Me", "Pitbull", "R&B");
+        DB.insertGenre("R&B");
+        DB.insertArtist("Pitbull", "R&B");
+
+        DB.insertSong("Despacito", "Luis Fonsi", "Regeton");
+        DB.insertGenre("Regeton");
+        DB.insertArtist("Luis Fonsi", "Regeton");
+
+        DB.insertSong("Perfect", "Ed Sheeran", "Pop");
+        DB.insertGenre("Pop");
+        DB.insertArtist("Ed Sheeran", "Pop");
+
+        DB.insertSong("Shape of You", "Ed Sheeran", "Pop");
+        DB.insertGenre("Pop");
+        DB.insertArtist("Ed Sheeran", "Pop");
     }
 
 }

@@ -12,6 +12,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class DBHelper extends SQLiteOpenHelper
 {
@@ -152,7 +153,7 @@ public class DBHelper extends SQLiteOpenHelper
             cursor.close();
         }
 
-        db.close();
+        //db.close();
         return exists;
     }
     //==============================================================================================
@@ -178,7 +179,7 @@ public class DBHelper extends SQLiteOpenHelper
         values.put(KEY_ARTIST_GENRE, genre);
 
         long result = db.insert(TABLE_ARTISTS, null, values);
-        db.close();
+        //db.close();
 
         return result != -1;
     }
@@ -189,7 +190,7 @@ public class DBHelper extends SQLiteOpenHelper
         values.put(KEY_GENRE_NAME, name);
 
         long result = db.insert(TABLE_GENRES, null, values);
-        db.close();
+        //db.close();
 
         return result != -1;
     }
@@ -447,7 +448,7 @@ public class DBHelper extends SQLiteOpenHelper
             cursor.close();
         }
 
-        db.close();
+        //db.close();
         return playlists;
     }
     //==============================================================================================
@@ -498,7 +499,7 @@ public class DBHelper extends SQLiteOpenHelper
             cursor.close();
         }
 
-        db.close();
+        //db.close();
         return playlists;
     }
     //==============================================================================================
@@ -535,7 +536,7 @@ public class DBHelper extends SQLiteOpenHelper
             cursor.close();
         }
 
-        db.close();
+        //db.close();
         return songs;
     }
     //==============================================================================================
@@ -572,6 +573,162 @@ public class DBHelper extends SQLiteOpenHelper
             e.printStackTrace();
             Toast.makeText(context, "Error removing playlist: " + playlistName, Toast.LENGTH_SHORT).show();
         } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+    }
+    //==============================================================================================
+    @SuppressLint("Range")
+    public void removeGenreAndAssociatedData(String genreName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = null;
+
+        try {
+            // Begin transaction to ensure all operations succeed together
+            db.beginTransaction();
+
+            // Step 1: Get IDs of all songs associated with the genre
+            String songIdQuery = "SELECT " + KEY_ID + " FROM " + TABLE_SONGS + " WHERE " + KEY_SONG_GENRE + " = ?";
+            cursor = db.rawQuery(songIdQuery, new String[]{genreName});
+
+            // Collect all song IDs
+            ArrayList<Integer> songIds = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                songIds.add(cursor.getInt(cursor.getColumnIndex(KEY_ID)));
+            }
+
+            // Remove the songs from user_playlists
+            if (!songIds.isEmpty()) {
+                String deleteUserPlaylistsQuery = "DELETE FROM " + TABLE_USER_PLAYLISTS +
+                        " WHERE " + KEY_SONG_ID + " IN (" +
+                        songIds.stream().map(String::valueOf).collect(Collectors.joining(",")) + ")";
+                db.execSQL(deleteUserPlaylistsQuery);
+            }
+
+            // Step 2: Delete all songs associated with the genre name
+            String deleteSongsQuery = "DELETE FROM " + TABLE_SONGS + " WHERE " + KEY_SONG_GENRE + " = ?";
+            db.execSQL(deleteSongsQuery, new String[]{genreName});
+
+            // Step 3: Delete all artists associated with the genre name
+            String deleteArtistsQuery = "DELETE FROM " + TABLE_ARTISTS + " WHERE " + KEY_ARTIST_GENRE + " = ?";
+            db.execSQL(deleteArtistsQuery, new String[]{genreName});
+
+            // Step 4: Delete the genre itself
+            String deleteGenreQuery = "DELETE FROM " + TABLE_GENRES + " WHERE " + KEY_GENRE_NAME + " = ?";
+            db.execSQL(deleteGenreQuery, new String[]{genreName});
+
+            // Mark transaction as successful
+            db.setTransactionSuccessful();
+
+            Toast.makeText(context, "Genre, associated songs, and artists removed.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Error removing genre, associated songs, and artists.", Toast.LENGTH_SHORT).show();
+        } finally {
+            // End transaction and close resources
+            db.endTransaction();
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+    }
+    //==============================================================================================
+    public void removeArtistAndAssociatedSongs(String artistName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = null;
+
+        try {
+            // Begin transaction to ensure all operations succeed together
+            db.beginTransaction();
+
+            // Step 1: Get IDs of all songs associated with the artist
+            String songIdQuery = "SELECT " + KEY_ID + " FROM " + TABLE_SONGS + " WHERE " + KEY_SONG_ARTIST_NAME + " = ?";
+            cursor = db.rawQuery(songIdQuery, new String[]{artistName});
+
+            // Collect all song IDs
+            ArrayList<Integer> songIds = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                songIds.add(cursor.getInt(cursor.getColumnIndex(KEY_ID)));
+            }
+
+            // Remove the songs from user_playlists
+            if (!songIds.isEmpty()) {
+                String deleteUserPlaylistsQuery = "DELETE FROM " + TABLE_USER_PLAYLISTS +
+                        " WHERE " + KEY_SONG_ID + " IN (" +
+                        songIds.stream().map(String::valueOf).collect(Collectors.joining(",")) + ")";
+                db.execSQL(deleteUserPlaylistsQuery);
+            }
+
+            // Step 2: Delete all songs associated with the artist name
+            String deleteSongsQuery = "DELETE FROM " + TABLE_SONGS + " WHERE " + KEY_SONG_ARTIST_NAME + " = ?";
+            db.execSQL(deleteSongsQuery, new String[]{artistName});
+
+            // Step 3: Delete the artist itself
+            String deleteArtistQuery = "DELETE FROM " + TABLE_ARTISTS + " WHERE " + KEY_ARTIST_NAME + " = ?";
+            db.execSQL(deleteArtistQuery, new String[]{artistName});
+
+            // Mark transaction as successful
+            db.setTransactionSuccessful();
+
+            Toast.makeText(context, "Artist and associated songs removed.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Error removing artist and associated songs.", Toast.LENGTH_SHORT).show();
+        } finally {
+            // End transaction and close resources
+            db.endTransaction();
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+    }
+    //==============================================================================================
+    @SuppressLint("Range")
+    public void removeSongByName(String songName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = null;
+        int songId = -1;
+
+        try {
+            // Begin transaction to ensure all operations succeed together
+            db.beginTransaction();
+
+            // Step 1: Get the song ID for the given song name
+            String songIdQuery = "SELECT " + KEY_ID + " FROM " + TABLE_SONGS + " WHERE " + KEY_SONG_NAME + " = ?";
+            cursor = db.rawQuery(songIdQuery, new String[]{songName});
+
+            if (cursor.moveToFirst()) {
+                songId = cursor.getInt(cursor.getColumnIndex(KEY_ID));
+            }
+
+            // If songId is found, proceed with deletion
+            if (songId != -1) {
+                // Step 2: Delete the song from the songs table
+                String deleteSongQuery = "DELETE FROM " + TABLE_SONGS + " WHERE " + KEY_ID + " = ?";
+                db.execSQL(deleteSongQuery, new String[]{String.valueOf(songId)});
+
+                // Step 3: Remove all records from user_playlists that reference this song
+                String deleteUserPlaylistsQuery = "DELETE FROM " + TABLE_USER_PLAYLISTS +
+                        " WHERE " + KEY_SONG_ID + " = ?";
+                db.execSQL(deleteUserPlaylistsQuery, new String[]{String.valueOf(songId)});
+
+                // Mark transaction as successful
+                db.setTransactionSuccessful();
+
+                Toast.makeText(context, "Song removed: " + songName, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(context, "Song not found: " + songName, Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Error removing song: " + songName, Toast.LENGTH_SHORT).show();
+        } finally {
+            // End transaction and close resources
+            db.endTransaction();
             if (cursor != null) {
                 cursor.close();
             }

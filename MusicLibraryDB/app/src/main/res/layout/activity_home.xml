@@ -12,9 +12,10 @@
         android:layout_width="80dp"
         android:layout_height="52dp"
         android:layout_marginEnd="28dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="28dp"
         android:clickable="true"
         android:focusable="true"
+        app:fabSize="normal"
         android:importantForAccessibility="no"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -83,5 +84,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/recycleView"
         app:layout_constraintVertical_bias="0.305" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floatingActionButton_delete"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginBottom="28dp"
+        app:fabSize="normal"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/ic_delete" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

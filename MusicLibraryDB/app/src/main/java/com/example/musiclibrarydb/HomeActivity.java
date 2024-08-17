@@ -2,6 +2,7 @@ package com.example.musiclibrarydb;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -33,7 +34,7 @@ public class HomeActivity extends AppCompatActivity {
 
     RecyclerView recyclerView;
     Button button_playlist;
-    FloatingActionButton add_remove_button;
+    FloatingActionButton add_remove_button,floatingActionButton_delete;
 
     String username;
     DBHelper DB;
@@ -70,7 +71,9 @@ public class HomeActivity extends AppCompatActivity {
             }
 
         recyclerView = findViewById(R.id.recycleView);
+
         add_remove_button = findViewById(R.id.floatingActionButton);
+        floatingActionButton_delete = findViewById(R.id.floatingActionButton_delete);
         button_playlist = findViewById(R.id.button_playlist);
 
         spinner = findViewById(R.id.searchType);
@@ -123,6 +126,53 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        floatingActionButton_delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+                String searchData = dataForSearch.getText().toString().trim();
+
+                // Create an AlertDialog.Builder
+                AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
+                builder.setTitle("Confirm Deletion")
+                        .setMessage("Are you sure you want to delete?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                switch (spinner.getSelectedItem().toString()) {
+                                    case "songGenre":
+                                        DB.removeGenreAndAssociatedData(searchData);
+                                        break;
+
+                                    case "artistName":
+                                        DB.removeArtistAndAssociatedSongs(searchData);
+                                        break;
+
+                                    case "songName":
+                                        DB.removeSongByName(searchData);
+                                        break;
+                                }
+
+                                storeDataInArrays();
+                                customAdapter.notifyDataSetChanged();
+
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                dialog.dismiss();
+                            }
+                        });
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+        });
+
+
 
         dataForSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override

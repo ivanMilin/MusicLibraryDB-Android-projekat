@@ -133,6 +133,10 @@ public class PlaylistActivity extends AppCompatActivity {
                     spinnerAdapter.notifyDataSetChanged();
                     loadPlaylistsIntoSpinner();
                 }
+
+                if (!SpinnerList.isEmpty()) {
+                    spinnerAdapter.notifyDataSetChanged();
+                }
             }
         });
 
@@ -272,7 +276,7 @@ public class PlaylistActivity extends AppCompatActivity {
         // Add each song to the LinearLayout
         for (String song : songsInOnePlaylist) {
             TextView textView = new TextView(this);
-            textView.setText("○ "+song);
+            textView.setText("\uD83D\uDD38 "+song);
             textView.setPadding(120, 16, 16, 16);
             textView.setTextSize(16);
             linearLayout.addView(textView);
@@ -344,7 +348,9 @@ public class PlaylistActivity extends AppCompatActivity {
                 }
                 updatedPlaylist.clear();
                 songsInOnePlaylist.clear();
-
+                for (int i = 0; i < selectedSongs.length; i++) {
+                    selectedSongs[i] = false;
+                }
                 // Update the playlist map with the new song list
                 //playlists.put(playlistName, String.join("\n", updatedPlaylist));
 

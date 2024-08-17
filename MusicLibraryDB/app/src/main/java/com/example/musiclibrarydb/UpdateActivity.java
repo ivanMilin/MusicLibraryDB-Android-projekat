@@ -46,23 +46,6 @@ public class UpdateActivity extends AppCompatActivity {
         genre2     = findViewById(R.id.editText_genre2);
         btn_update = findViewById(R.id.btn_update);
         btn_delete = findViewById(R.id.btn_delete);
-        spinnerType = findViewById(R.id.spinnerType);
-
-        List<String> spinnerItems = new ArrayList<>();
-        spinnerItems.add("songName");
-        spinnerItems.add("songGenre");
-        spinnerItems.add("artistName");
-
-        // Create an ArrayAdapter using a simple spinner layout
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this, // or getContext() if inside a fragment
-                android.R.layout.simple_spinner_item,
-                spinnerItems
-        );
-
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        spinnerType.setAdapter(adapter);
 
         getAndSetIntentData();
 
